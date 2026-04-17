@@ -1,0 +1,220 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+#g{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;padding:1.25rem 1rem 2rem;max-width:960px;margin:0 auto}
+
+#hd{text-align:center;margin-bottom:1rem}
+#hd h1{font-size:clamp(18px,4vw,26px);font-weight:800;color:#111;letter-spacing:-0.01em;margin-bottom:4px}
+#hd p{font-size:clamp(11px,2vw,13px);color:#888;margin-bottom:6px}
+#hint{font-size:clamp(10px,1.8vw,12px);color:#e0199a;background:#fdf0f8;border:1px solid #f5c0e8;border-radius:99px;display:inline-block;padding:4px 14px;margin-top:2px}
+
+#score-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.spill{background:#f5f5f5;border-radius:99px;padding:5px 14px;font-size:12px;color:#888}
+.spill strong{color:#111;font-weight:600}
+
+#pool-wrap{border:2px dashed #ddd;border-radius:16px;padding:12px 14px;margin-bottom:1.25rem;min-height:70px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;transition:border-color 0.2s,background 0.2s}
+
+.card{cursor:pointer;display:inline-flex;align-items:center;background:#fff;border:2px solid #ddd;border-radius:99px;padding:9px 18px;font-size:clamp(11px,2vw,13px);font-weight:500;color:#222;user-select:none;transition:transform 0.12s,box-shadow 0.12s,border-color 0.12s,background 0.12s;white-space:nowrap;touch-action:manipulation;-webkit-user-select:none}
+.card:active{transform:scale(0.96)}
+.card.selected{border-color:#e0199a;background:#fff0fa;color:#b0006a;box-shadow:0 0 0 3px #e0199a22;transform:scale(1.04)}
+.card.ok{background:#f0faf0;border-color:#86c986;color:#2d6a2d;cursor:default}
+.card.ok::after{content:' ✓';font-size:11px;color:#4caf50;margin-left:4px}
+.card.dual{background:#fff8f0;border-color:#f0c070;color:#7a4f00;cursor:default}
+.card.dual::after{content:' ↔';font-size:11px;color:#f0a030;margin-left:4px}
+.card.bad{animation:sk 0.32s ease}
+@keyframes sk{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(6px)}}
+
+#zones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:1rem}
+.zone{background:#fff;border:2px solid #eee;border-radius:16px;min-height:clamp(220px,35vw,340px);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s,transform 0.12s;box-shadow:0 2px 12px rgba(0,0,0,0.04);cursor:pointer;touch-action:manipulation}
+.zone.ready{border-color:#e0199a;box-shadow:0 0 0 4px #e0199a18;transform:scale(1.015)}
+.zone.drag-over{border-color:#e0199a;box-shadow:0 0 0 4px #e0199a18}
+.zh{padding:clamp(10px,2vw,16px) 12px clamp(8px,1.5vw,12px);text-align:center;border-bottom:1.5px solid #f0f0f0}
+.zh-title{font-size:clamp(12px,2.2vw,15px);font-weight:700;color:#e0199a;margin-bottom:2px}
+.zh-sub{font-size:clamp(9px,1.5vw,11px);color:#aaa;line-height:1.4}
+.zc{padding:10px;display:flex;flex-direction:column;gap:6px}
+.zc .card{white-space:normal;border-radius:10px;padding:8px 12px;cursor:default;font-size:clamp(10px,1.8vw,12px)}
+
+#fb{min-height:36px;text-align:center;margin-bottom:4px;padding:0 8px}
+#fbi{display:inline-block;font-size:12px;padding:5px 16px;border-radius:99px;line-height:1.5;max-width:90%}
+#fbi.ok{background:#e8f8e8;color:#2d6a2d;border:1px solid #b6e0b6}
+#fbi.err{background:#fdecea;color:#a32d2d;border:1px solid #f5bcbc}
+#fbi.dual{background:#fff8e8;color:#7a4f00;border:1px solid #f0d090}
+#fbi.mt{color:transparent}
+
+#rp{display:none;text-align:center;margin-top:10px;padding:1.75rem 1.5rem;border:1.5px solid #eee;border-radius:16px;background:#fff;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.04)}
+#rp::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e0199a,#8040e0,#e0199a)}
+#rp-sub{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-bottom:6px}
+#rp-title{font-size:clamp(20px,4vw,26px);font-weight:800;color:#111;letter-spacing:-0.01em;margin-bottom:5px}
+#rp-msg{font-size:13px;color:#888;margin-bottom:14px;line-height:1.6}
+#rb{cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:10px 26px;border-radius:99px;border:2px solid #e0199a;background:#fff;color:#e0199a;transition:background 0.15s,color 0.15s;touch-action:manipulation}
+#rb:active{background:#e0199a;color:#fff}
+
+@media(max-width:600px){
+  #zones{grid-template-columns:1fr}
+  .zone{min-height:160px}
+}
+</style>
+
+<div id="g">
+  <div id="hd">
+    <h1>Zuordnung von Konjunkturindikatoren</h1>
+    <p>Ziehe die Indikatoren in die richtige zeitliche Kategorie!</p>
+    <div id="hint">Karte antippen → Kategorie antippen</div>
+  </div>
+
+  <div id="score-row">
+    <div class="spill">Richtig: <strong id="sn">0</strong> / <strong id="st">0</strong></div>
+    <div class="spill" id="pc">14 Karten übrig</div>
+  </div>
+
+  <div id="pool-wrap"></div>
+
+  <div id="zones">
+    <div class="zone" id="ze" data-zone="early">
+      <div class="zh">
+        <div class="zh-title">Frühindikatoren</div>
+        <div class="zh-sub">geben Hinweise auf die<br>zukünftige Entwicklung</div>
+      </div>
+      <div class="zc" id="cards-early"></div>
+    </div>
+    <div class="zone" id="zp" data-zone="present">
+      <div class="zh">
+        <div class="zh-title">Präsenzindikatoren</div>
+        <div class="zh-sub">beschreiben die aktuelle<br>wirtschaftliche Lage</div>
+      </div>
+      <div class="zc" id="cards-present"></div>
+    </div>
+    <div class="zone" id="zl" data-zone="late">
+      <div class="zh">
+        <div class="zh-title">Spätindikatoren</div>
+        <div class="zh-sub">reagieren mit Verzögerung auf<br>die wirtschaftliche Entwicklung</div>
+      </div>
+      <div class="zc" id="cards-late"></div>
+    </div>
+  </div>
+
+  <div id="fb"><span id="fbi" class="mt">–</span></div>
+  <div id="rp">
+    <div id="rp-sub">Auswertung</div>
+    <div id="rp-title"></div>
+    <div id="rp-msg"></div>
+    <button id="rb">Nochmal spielen</button>
+  </div>
+</div>
+
+<script>
+const items=[
+  {id:'auftragseingang',label:'Auftragslage / -eingang',correct:['early'],note:'Sehr zuverlässig – Aufträge können jedoch noch storniert werden.'},
+  {id:'ifo',label:'ifo-Geschäftsklimaindex',correct:['early'],note:'Sehr zuverlässig – monatliche Befragung von ~9.000 Unternehmen zu Lage und Erwartungen.'},
+  {id:'gfk',label:'GfK-Konsumklimaindex',correct:['early'],note:'Erfasst Konsumneigung und Einkommenserwartungen privater Haushalte.'},
+  {id:'investitionen',label:'Investitionen (Netto- / Ersatz-)',correct:['early','present'],note:'Dual: Nettoinvestitionen als Früh- oder Präsenzindikator möglich; Ersatzinvestitionen gering aussagekräftig.',dual:true},
+  {id:'kapazitaet',label:'Kapazitätsauslastung / Industrieproduktion',correct:['present'],note:'Sehr zuverlässiger Präsenzindikator.'},
+  {id:'umsatz',label:'Umsatz- / Gewinnentwicklung',correct:['present'],note:'Sehr zuverlässig; Gewinne können leicht hinterherhinken.'},
+  {id:'verbrauch',label:'Privater Verbrauch',correct:['present'],note:'Sehr zuverlässiger Präsenzindikator.'},
+  {id:'bip',label:'BIP (monatlich / quartalsweise)',correct:['present'],note:'Zuverlässiger Präsenzindikator.'},
+  {id:'zinsniveau',label:'Zinsniveauveränderung',correct:['present'],note:'Wichtiger Faktor – kein zwingend mechanischer Zusammenhang.'},
+  {id:'lagerhaltung',label:'Lagerhaltung',correct:['present'],note:'Keine eindeutigen Aussagen: unfreiwillig vs. bewusster Puffer.'},
+  {id:'arbeitslosigkeit',label:'Arbeitslosenzahl / -quote',correct:['late'],note:'Entlassungen erfolgen mit deutlicher Verzögerung (außer Zeitarbeit).'},
+  {id:'beschaeftigung',label:'Beschäftigung',correct:['late'],note:'Einstellungen erst nach ausgeschöpften Kapazitäten und nachhaltigem Aufschwung.'},
+  {id:'vpi',label:'Verbraucherpreisindex (Inflation)',correct:['late'],note:'Reagiert verzögert – vor allem auf erhöhte Löhne nach Tarifverhandlungen.'},
+  {id:'einkommen',label:'Einkommensentwicklung (Löhne / Gehälter)',correct:['late'],note:'Hinkt deutlich hinterher – Anpassung erst in Tarifverhandlungen möglich.'},
+];
+
+let placed={},score=0,selected=null;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function init(){
+  placed={};score=0;selected=null;
+  document.getElementById('sn').textContent='0';
+  document.getElementById('st').textContent=items.length;
+  setFb('','mt');
+  document.getElementById('rp').style.display='none';
+  ['early','present','late'].forEach(z=>document.getElementById('cards-'+z).innerHTML='');
+  document.querySelectorAll('.zone').forEach(z=>z.classList.remove('ready'));
+  const pool=document.getElementById('pool-wrap');
+  pool.innerHTML='';
+  shuffle([...items]).forEach(i=>pool.appendChild(mkCard(i)));
+  updPool();
+}
+
+function mkCard(ind){
+  const el=document.createElement('div');
+  el.className='card';el.id='c-'+ind.id;el.textContent=ind.label;
+  el.dataset.id=ind.id;
+  el.draggable=true;
+  el.addEventListener('click',()=>selectCard(ind.id));
+  el.addEventListener('dragstart',e=>{dragId=e.target.dataset.id;setTimeout(()=>e.target.classList.add('dragging'),0)});
+  el.addEventListener('dragend',e=>e.target.classList.remove('dragging'));
+  return el;
+}
+
+function selectCard(id){
+  if(placed[id])return;
+  if(selected===id){
+    clearSelection();return;
+  }
+  if(selected)clearSelection();
+  selected=id;
+  const el=document.getElementById('c-'+id);
+  if(el)el.classList.add('selected');
+  document.querySelectorAll('.zone').forEach(z=>z.classList.add('ready'));
+  setFb('Jetzt eine Kategorie antippen!','mt');
+}
+
+function clearSelection(){
+  if(selected){const el=document.getElementById('c-'+selected);if(el)el.classList.remove('selected')}
+  selected=null;
+  document.querySelectorAll('.zone').forEach(z=>z.classList.remove('ready'));
+}
+
+let dragId=null;
+document.querySelectorAll('.zone').forEach(z=>{
+  z.addEventListener('click',()=>{if(selected)drop(selected,z.dataset.zone)});
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag-over')});
+  z.addEventListener('dragleave',e=>{if(!z.contains(e.relatedTarget))z.classList.remove('drag-over')});
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag-over');if(dragId)drop(dragId,z.dataset.zone);dragId=null});
+});
+
+function drop(id,zone){
+  if(placed[id])return;
+  const ind=items.find(i=>i.id===id);if(!ind)return;
+  clearSelection();
+  const card=document.getElementById('c-'+id);
+  if(!ind.correct.includes(zone)){
+    if(card){card.classList.add('bad');setTimeout(()=>card.classList.remove('bad'),350)}
+    setFb('Nicht ganz – schau nochmal nach!','err');
+    return;
+  }
+  placed[id]=true;
+  if(ind.dual){card.classList.remove('selected');card.classList.add('dual');setFb(ind.note,'dual')}
+  else{card.classList.remove('selected');card.classList.add('ok');score++;document.getElementById('sn').textContent=score;setFb(ind.note,'ok')}
+  card.style.borderRadius='10px';
+  card.draggable=false;
+  card.style.whiteSpace='normal';
+  document.getElementById('cards-'+zone).appendChild(card);
+  updPool();check();
+}
+
+function setFb(t,c){
+  const el=document.getElementById('fbi');
+  el.textContent=t||'–';
+  if(c!=='mt')el.className=c==='ok'?'ok':c==='err'?'err':c==='dual'?'dual':'mt';
+  else el.className='mt';
+}
+
+function updPool(){
+  const rem=items.length-Object.keys(placed).length;
+  document.getElementById('pc').textContent=rem===0?'Alle vergeben ✓':rem+' Karte'+(rem===1?'':'n')+' übrig';
+}
+
+function check(){
+  if(Object.keys(placed).length!==items.length)return;
+  const max=items.length-items.filter(i=>i.dual).length;
+  document.getElementById('rp-title').textContent=score===max?score+' / '+max+' – Perfekt!':score+' / '+max+' richtig';
+  document.getElementById('rp-msg').textContent=score===max?'Alle 14 Indikatoren korrekt eingeordnet – ausgezeichnet!':'Die grün markierten Karten zeigen die richtige Zuordnung. Beim nächsten Versuch klappt es sicher!';
+  document.getElementById('rp').style.display='block';
+}
+
+document.getElementById('rb').addEventListener('click',init);
+init();
+</script>
